@@ -158,7 +158,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -119}
+  m_AnchoredPosition: {x: 0, y: -72}
   m_SizeDelta: {x: 189.4547, y: 54.195}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &47105966
@@ -1668,7 +1668,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scoreText: {fileID: 1089461667}
-  highScoreText: {fileID: 0}
+  highScoreText: {fileID: 1450899868}
   currentScore: 0
 --- !u!4 &725798840
 Transform:
@@ -3927,7 +3927,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -52}
+  m_AnchoredPosition: {x: 0, y: -139}
   m_SizeDelta: {x: 189.4547, y: 54.195}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1826655615
@@ -4241,8 +4241,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1930113570}
   - component: {fileID: 1930113569}
-  - component: {fileID: 1930113568}
   - component: {fileID: 1930113571}
+  - component: {fileID: 1930113572}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -4250,25 +4250,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1930113568
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1930113567}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c0a1a273f702d1e44894c70afc556705, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  hearts:
-  - {fileID: 1521519168}
-  - {fileID: 1573119222}
-  - {fileID: 567075291}
-  gameOverPanel: {fileID: 427917128}
-  finalScoreText: {fileID: 1450899868}
-  maxLives: 3
 --- !u!114 &1930113569
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4282,7 +4263,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scoreText: {fileID: 1089461667}
-  highScoreText: {fileID: 0}
+  highScoreText: {fileID: 1450899868}
   currentScore: 0
 --- !u!4 &1930113570
 Transform:
@@ -4314,6 +4295,25 @@ MonoBehaviour:
   pauseMenu: {fileID: 1860914221}
   pauseButton: {fileID: 848487164}
   enableESCKey: 1
+--- !u!114 &1930113572
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1930113567}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0a1a273f702d1e44894c70afc556705, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hearts:
+  - {fileID: 1521519168}
+  - {fileID: 1573119222}
+  - {fileID: 567075291}
+  gameOverPanel: {fileID: 427917128}
+  finalScoreText: {fileID: 1450899868}
+  maxLives: 3
 --- !u!1 &2093721558
 GameObject:
   m_ObjectHideFlags: 0
