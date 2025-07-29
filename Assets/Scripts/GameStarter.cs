@@ -2,114 +2,130 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
-
-
 [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
 public class BallController : MonoBehaviour
 {
-    [Header("Game Start Settings")]
+    [Header("SPAWN SETTINGS")]
+    [Tooltip("Set exact starting coordinates for the ball")]
+    public Vector3 manualStartPosition = new Vector3(0f, 3f, 0f);
     public GameObject startPanel;
     [SerializeField] private float startDelay = 2f;
     [SerializeField] private float gravityStrength = 1.5f;
     [SerializeField] private float initialSpeed = 3f;
 
-    [Header("Touch Controls")]
+    [Header("TOUCH CONTROLS")] 
     [SerializeField] private float jumpForce = 7f;
     [SerializeField] private float maxHorizontalVelocity = 4f;
     [SerializeField] private float scoreCooldown = 0.2f;
     [SerializeField] private ParticleSystem touchParticles;
     [SerializeField] private AudioClip jumpSound;
 
+    [Header("REFERENCES")] 
+    [SerializeField] private Camera mainCamera;
+
     private Rigidbody2D rb;
-    private Camera mainCamera;
     private float lastScoreTime;
     private bool gameStarted = false;
 
-    void Start()
+    void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        mainCamera = Camera.main;
-        lastScoreTime = -scoreCooldown;
-        rb.gravityScale = 0;
-        rb.velocity = Vector2.zero;
+        if (!mainCamera) mainCamera = Camera.main;
     }
 
-    void Update()
+    void Start()
     {
-        if (gameStarted)
-        {
-            HandleInput();
-            ClampHorizontalVelocity();
-        }
+        ResetToStartPosition();
+    }
+
+    public void ResetToStartPosition()
+    {
+        // Reset transform and physics
+        transform.position = manualStartPosition;
+        transform.rotation = Quaternion.identity;
+        rb.velocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+        rb.gravityScale = 0f;
+        
+        // Reset game state
+        gameStarted = false;
+        lastScoreTime = -scoreCooldown;
+        
+        // Show start panel if exists
+        if(startPanel) startPanel.SetActive(true);
     }
 
     public void StartGame()
     {
-        StartCoroutine(DelayedPhysicsStart());
+        StartCoroutine(GameStartRoutine());
     }
 
-    IEnumerator DelayedPhysicsStart()
+    IEnumerator GameStartRoutine()
     {
-        startPanel.SetActive(false);
+        // Hide start UI
+        if(startPanel) startPanel.SetActive(false);
+        
+        // Wait for start delay
         yield return new WaitForSecondsRealtime(startDelay);
         
+        // Activate game physics
         gameStarted = true;
         rb.gravityScale = gravityStrength;
         rb.AddForce(Vector2.down * initialSpeed, ForceMode2D.Impulse);
-        rb.WakeUp();
+    }
+
+    void Update()
+    {
+        if(!gameStarted) return;
+        
+        HandleInput();
+        ClampHorizontalVelocity();
     }
 
     private void HandleInput()
     {
-        if (Input.touchCount > 0 || Input.GetMouseButtonDown(0))
+        if((Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began) || 
+           Input.GetMouseButtonDown(0))
         {
-            Vector2 inputPos = GetInputPosition();
-            Vector2 worldPos = mainCamera.ScreenToWorldPoint(inputPos);
-
-            if (GetComponent<Collider2D>().OverlapPoint(worldPos))
+            Vector2 worldPos = mainCamera.ScreenToWorldPoint(GetInputPosition());
+            
+            if(GetComponent<Collider2D>().OverlapPoint(worldPos))
             {
-                HandleSuccessfulTouch();
+                OnValidTouch();
             }
         }
     }
 
     private Vector2 GetInputPosition()
     {
-        if (Input.touchCount > 0)
-        {
-            return Input.GetTouch(0).position;
-        }
-        else if (Input.GetMouseButtonDown(0))
-        {
-            return Input.mousePosition;
-        }
-        return Vector2.zero; // Default return value
+        return Input.touchCount > 0 ? 
+               Input.GetTouch(0).position : 
+               (Vector2)Input.mousePosition;
     }
 
-    private void HandleSuccessfulTouch()
+    private void OnValidTouch()
     {
-        if (Time.time > lastScoreTime + scoreCooldown)
+        if(Time.time > lastScoreTime + scoreCooldown)
         {
-            AddScore();
+            ScoreSystem.Instance?.AddScore(1);
             lastScoreTime = Time.time;
         }
+        
         ApplyJumpForce();
-        //PlayTouchEffects();
-    }
-
-    private void AddScore()
-    {
-        ScoreSystem.Instance?.AddScore(1);
+        PlayTouchEffects();
     }
 
     private void ApplyJumpForce()
     {
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-        float randomX = Random.Range(-1f, 1f);
-        rb.AddForce(new Vector2(randomX, 0), ForceMode2D.Impulse);
+        rb.AddForce(new Vector2(Random.Range(-1f, 1f), 0), ForceMode2D.Impulse);
     }
 
-   
+    private void PlayTouchEffects()
+    {
+        if(touchParticles) Instantiate(touchParticles, transform.position, Quaternion.identity);
+        if(jumpSound) AudioSource.PlayClipAtPoint(jumpSound, transform.position);
+    }
 
     private void ClampHorizontalVelocity()
     {
@@ -120,9 +136,19 @@ public class BallController : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D col)
     {
-        if (col.gameObject.CompareTag("Ground"))
+        if(col.gameObject.CompareTag("Ground"))
         {
             LivesSystem.Instance?.LoseLife();
         }
     }
+
+    #if UNITY_EDITOR
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.green;
+        Gizmos.DrawSphere(manualStartPosition, 0.25f);
+        Gizmos.DrawWireCube(manualStartPosition, Vector3.one * 0.5f);
+        UnityEditor.Handles.Label(manualStartPosition + Vector3.up * 0.5f, "Ball Start Pos");
+    }
+    #endif
 }
