@@ -1,17 +1,18 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-
+using UnityEngine.SceneManagement; // For reloading the scene
 
 public class LivesSystem : MonoBehaviour
 {
     public static LivesSystem Instance;
-    
+
     [Header("UI References")]
-    public Image[] hearts;          // Assign heart images in Inspector
-    public GameObject gameOverPanel; // Assign your Game Over panel
-    public TMP_Text finalScoreText;  // Text to show final score
-    
+    public Image[] hearts; 
+    public GameObject gameOverPanel; 
+    public TMP_Text finalScoreText; 
+    public TMP_Text finalCoinsText; // Add this for displaying final coins
+
     [Header("Settings")]
     public int maxLives = 3;
     private int currentLives;
@@ -19,16 +20,16 @@ public class LivesSystem : MonoBehaviour
     void Awake()
     {
         Instance = this;
-        currentLives = maxLives;
+        ResetLives();
     }
 
     public void LoseLife()
     {
-        if(currentLives <= 0) return; // Already game over
-        
+        if(currentLives <= 0) return; 
+
         currentLives--;
         UpdateHeartsUI();
-        
+
         if(currentLives <= 0)
         {
             GameOver();
@@ -43,22 +44,45 @@ public class LivesSystem : MonoBehaviour
         }
     }
 
-   void GameOver()
-{
-    // Activate panel
-    gameOverPanel.SetActive(true);
-    
-    // Update final score text
-    TextMeshProUGUI scoreText = gameOverPanel.GetComponentInChildren<TextMeshProUGUI>();
-    if(scoreText != null && ScoreSystem.Instance != null)
+    void GameOver()
     {
-        scoreText.text = $"Final Score: {ScoreSystem.Instance.GetCurrentScore()}";
-    }
-    
-    // Pause game
-    Time.timeScale = 0f;
-}
+        gameOverPanel.SetActive(true);
 
-    // Call this to restart the game
-   
+        // Display final score
+        if(finalScoreText != null && ScoreSystem.Instance != null)
+        {
+            ScoreSystem.Instance.DisplayFinalScore(finalScoreText);
+        }
+        // Display final coins
+        if(finalCoinsText != null && ScoreSystem.Instance != null) 
+        {
+            ScoreSystem.Instance.DisplayFinalCoins(finalCoinsText); 
+        }
+
+        Time.timeScale = 0f;
+    }
+
+    public void ResetLives()
+    {
+        currentLives = maxLives;
+        UpdateHeartsUI();
+    }
+
+    // Call this from a UI Button when you want to restart the game
+    public void RestartGame()
+    {
+        Time.timeScale = 1f; // Unpause the game
+
+        // Reset Score and Coins
+        if (ScoreSystem.Instance != null)
+        {
+            ScoreSystem.Instance.ResetScore();
+            ScoreSystem.Instance.ResetCoins(); // Reset coins through ScoreSystem
+        }
+
+        gameOverPanel.SetActive(false);
+
+        // Reload the current scene to effectively restart the game
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
 }
