@@ -1,25 +1,29 @@
 using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
-public class GameManager : MonoBehaviour
+public class MainMenu : MonoBehaviour
 {
-    // Singleton pattern for easy access
-    public static GameManager Instance { get; private set; }
+    public static MainMenu Instance { get; private set; }
 
     [Header("UI Panels")]
     [SerializeField] private GameObject startPanel;
     [SerializeField] private GameObject gameOverPanel;
-    [SerializeField] private GameObject gameHUD;
+
+    [Header("Game HUD Elements")]
+    [SerializeField] private GameObject heartsPanel;
+    [SerializeField] private GameObject scoreText;
+    [SerializeField] private GameObject coinCountText;
 
     [Header("Settings")]
     [SerializeField] private float gameOverDelay = 3f;
 
     private void Awake()
     {
-        // Singleton setup
         if (Instance == null)
         {
             Instance = this;
+            // DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -29,7 +33,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log("GameManager initialized");
+        Debug.Log("MainMenu initialized");
         ShowStartMenu();
     }
 
@@ -42,40 +46,34 @@ public class GameManager : MonoBehaviour
     private IEnumerator GameOverRoutine()
     {
         Debug.Log("Starting GameOver routine");
-        
-        // 1. Show Game Over Panel
+
         if (gameOverPanel != null)
         {
             gameOverPanel.SetActive(true);
-            Debug.Log("GameOver panel activated");
         }
         else
         {
             Debug.LogError("GameOver panel reference missing!");
         }
 
-        // 2. Hide HUD
-        if (gameHUD != null)
-        {
-            gameHUD.SetActive(false);
-        }
+        SetGameHudActive(false);
 
-        // 3. Wait for delay
-        yield return new WaitForSeconds(gameOverDelay);
+        Time.timeScale = 0f;
 
-        // 4. Return to menu
+        yield return new WaitForSecondsRealtime(gameOverDelay);
+
         ShowStartMenu();
     }
 
     public void ShowStartMenu()
     {
         Debug.Log("Showing start menu");
-        
-        // Hide all other panels
+
+        Time.timeScale = 1f;
+
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
-        if (gameHUD != null) gameHUD.SetActive(false);
-        
-        // Show start panel
+        SetGameHudActive(false);
+
         if (startPanel != null)
         {
             startPanel.SetActive(true);
@@ -89,14 +87,37 @@ public class GameManager : MonoBehaviour
     public void StartGame()
     {
         Debug.Log("Starting game");
-        
-        // Hide menu
+
         if (startPanel != null) startPanel.SetActive(false);
-        
-        // Show game UI
-        if (gameHUD != null) gameHUD.SetActive(true);
-        
-        // Reset game state
-        // Add your game initialization code here
+        SetGameHudActive(true);
+
+
+        if (ScoreSystem.Instance != null)
+        {
+            ScoreSystem.Instance.ResetScore();
+            ScoreSystem.Instance.ResetCoins();
+        }
+        if (LivesSystem.Instance != null)
+        {
+            LivesSystem.Instance.ResetLives();
+        }
+    }
+
+    private void SetGameHudActive(bool isActive)
+    {
+        if (heartsPanel != null) heartsPanel.SetActive(isActive);
+        if (scoreText != null) scoreText.SetActive(isActive);
+        if (coinCountText != null) coinCountText.SetActive(isActive);
+    }
+
+    public void LoadShopScene()
+    {
+        Debug.Log("shop ok");
+        SceneManager.LoadScene("ShopScene");
+
+    }
+    public void ExitGame()
+    {
+        Application.Quit();
     }
 }
