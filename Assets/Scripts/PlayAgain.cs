@@ -6,7 +6,7 @@ public class PlayAgainButton : MonoBehaviour
 {
     [Header("Ball Settings")]
     [Tooltip("Drag your Ball object here")]
-    [SerializeField] private BallController ballController;
+    [SerializeField] private GameStarter ballController;
     
     [Header("UI References")]
     [SerializeField] private GameObject gameOverPanel;
@@ -26,7 +26,7 @@ public class PlayAgainButton : MonoBehaviour
         // Reset game systems
         LivesSystem.Instance?.ResetLives();
         ScoreSystem.Instance?.ResetScore();
-        ScoreSystem.Instance?.ResetCoins();
+        ScoreSystem.Instance?.ResetRoundCoins();
 
         // Reset ball using manual position
         if(ballController != null)

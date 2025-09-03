@@ -95,7 +95,7 @@ public class MainMenu : MonoBehaviour
         if (ScoreSystem.Instance != null)
         {
             ScoreSystem.Instance.ResetScore();
-            ScoreSystem.Instance.ResetCoins();
+            //ScoreSystem.Instance.ResetCoins();
         }
         if (LivesSystem.Instance != null)
         {
@@ -116,6 +116,14 @@ public class MainMenu : MonoBehaviour
         SceneManager.LoadScene("ShopScene");
 
     }
+
+    public void LoadMainMenu()
+    {
+        Debug.Log("Loaded");
+        SceneManager.LoadScene("SampleScene");
+
+    }
+
     public void ExitGame()
     {
         Application.Quit();

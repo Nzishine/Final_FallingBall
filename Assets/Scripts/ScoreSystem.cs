@@ -1,34 +1,41 @@
 using UnityEngine;
-using System.Collections; // For Coroutines
+using UnityEngine.UI;
+using System.Collections;
 using TMPro;
 
 public class ScoreSystem : MonoBehaviour
 {
-    public static ScoreSystem Instance; 
-    
-    // Original Score System UI and Settings
-    [Header("Score UI References")]
-    public TMP_Text scoreText; 
-    
-    [Header("Score Settings")]
-    [SerializeField] private int currentScore = 0; 
+    public static ScoreSystem Instance;
 
-    // Coin System UI and Settings (NEWLY ADDED)
+    [Header("Score UI References")]
+    public TMP_Text scoreText;
+
+    [Header("Score Settings")]
+    [SerializeField] private int currentScore = 0;
+
     [Header("Coin UI References")]
-    public TMP_Text coinText; 
-    [SerializeField] private int currentCoins = 0; 
+    public TMP_Text coinText;
+    public AudioClip coinSound;
+    private int currentCoins = 0;
+
+    [Header("Background Settings")]
+    public SpriteRenderer backgroundRenderer;
+    public Sprite defaultBackground;
+    public Sprite backgroundAt20;
+    public Sprite backgroundAt40;
+
 
     [Header("Coin Spawner Settings")]
-    public GameObject coinPrefab; 
-    public float minX = -8f; 
-    public float maxX = 8f; 
-    public float minY = 0f; 
-    public float maxY = 4f; 
-    public float minSpawnInterval = 1f; 
-    public float maxSpawnInterval = 3f; 
-    public int minCoinsPerSpawn = 1; 
-    public int maxCoinsPerSpawn = 3; 
-    public float coinLifetime = 5f; 
+    public GameObject coinPrefab;
+    public float minX = -8f;
+    public float maxX = 8f;
+    public float minY = 0f;
+    public float maxY = 4f;
+    public float minSpawnInterval = 1f;
+    public float maxSpawnInterval = 3f;
+    public int minCoinsPerSpawn = 1;
+    public int maxCoinsPerSpawn = 3;
+    public float coinLifetime = 5f;
 
     void Awake()
     {
@@ -38,72 +45,109 @@ public class ScoreSystem : MonoBehaviour
         }
         else
         {
-            Destroy(gameObject); 
+            Destroy(gameObject);
             return;
-        }
-    }
-
-    private void FindScoreText()
-    {
-        if (scoreText == null)
-        {
-            scoreText = GameObject.Find("ScoreText")?.GetComponent<TMP_Text>();
-            if (scoreText == null)
-            {
-                Debug.LogError("ScoreText not found in scene! Please assign it in the Inspector or ensure a GameObject named 'ScoreText' with a TMP_Text component exists.");
-            }
-        }
-    }
-
-    private void FindCoinText()
-    {
-        if (coinText == null)
-        {
-            coinText = GameObject.Find("CoinText")?.GetComponent<TMP_Text>();
-            if (coinText == null)
-            {
-                Debug.LogError("CoinText not found in scene! Please assign it in the Inspector or ensure a GameObject named 'CoinText' with a TMP_Text component exists.");
-            }
         }
     }
 
     void Start()
     {
-        FindScoreText(); 
+        FindScoreText();
         UpdateScoreDisplay();
 
-        FindCoinText(); // Initialize Coin Text
-        UpdateCoinDisplay(); // Display initial coins
-        
-        // Start Coin Spawner
+        FindCoinText();
+
+        currentCoins = PlayerPrefs.GetInt("Coins", 0);
+        UpdateCoinDisplay();
+
+        if (backgroundRenderer != null && defaultBackground != null)
+            backgroundRenderer.sprite = defaultBackground;
+
+
         StartCoroutine(SpawnCoinsRoutine());
     }
 
-    // --- Original Score System Methods ---
+    private void FindScoreText()
+    {
+        if (scoreText == null)
+            scoreText = GameObject.Find("ScoreText")?.GetComponent<TMP_Text>();
+    }
+
+    private void FindCoinText()
+    {
+        if (coinText == null)
+            coinText = GameObject.Find("CoinText")?.GetComponent<TMP_Text>();
+    }
+
+    // --- Score Methods ---
     public void AddScore(int points)
     {
         currentScore += points;
         UpdateScoreDisplay();
+        CheckBackgroundChange();
     }
-
-    public int GetCurrentScore() => currentScore;
 
     public void ResetScore()
     {
         currentScore = 0;
         UpdateScoreDisplay();
+        CheckBackgroundChange();
     }
 
     private void UpdateScoreDisplay()
     {
         if (scoreText != null)
-        {
             scoreText.text = $"Score: {currentScore}";
-        }
-        else
+    }
+
+    private void CheckBackgroundChange()
+    {
+        if (backgroundRenderer == null) return;
+
+        if (currentScore >= 40 && backgroundAt40 != null)
         {
-            Debug.LogWarning("Score Text reference is missing! Cannot update score display.");
+            backgroundRenderer.sprite = backgroundAt40;
         }
+        else if (currentScore >= 20 && backgroundAt20 != null)
+        {
+            backgroundRenderer.sprite = backgroundAt20;
+        }
+        else if (defaultBackground != null)
+        {
+            backgroundRenderer.sprite = defaultBackground;
+        }
+    }
+
+
+    // --- Coin Methods ---
+    public void AddCoin(int amount)
+    {
+        currentCoins += amount;
+        PlayerPrefs.SetInt("Coins", currentCoins);
+        PlayerPrefs.Save();
+        UpdateCoinDisplay();
+    }
+
+    public int GetCurrentCoins() => currentCoins;
+
+
+    public void ResetCoins()
+    {
+        currentCoins = 0;
+        PlayerPrefs.SetInt("Coins", currentCoins);
+        PlayerPrefs.Save();
+        UpdateCoinDisplay();
+    }
+    public void ResetRoundCoins()
+    {
+        currentCoins = PlayerPrefs.GetInt("Coins", 0);
+        UpdateCoinDisplay();
+    }
+
+    private void UpdateCoinDisplay()
+    {
+        if (coinText != null)
+            coinText.text = $"Coins: {currentCoins}";
     }
 
     public void DisplayFinalScore(TMP_Text targetText)
@@ -114,42 +158,15 @@ public class ScoreSystem : MonoBehaviour
         }
     }
 
-    // --- Coin System Methods (NEWLY ADDED) ---
-    public void AddCoin(int amount)
-    {
-        currentCoins += amount;
-        UpdateCoinDisplay();
-    }
-
-    public int GetCurrentCoins() => currentCoins;
-
-    public void ResetCoins()
-    {
-        currentCoins = 0;
-        UpdateCoinDisplay();
-    }
-
-    private void UpdateCoinDisplay()
-    {
-        if (coinText != null)
-        {
-            coinText.text = $"Coins: {currentCoins}";
-        }
-        else
-        {
-            Debug.LogWarning("Coin Text reference is missing! Cannot update coin display.");
-        }
-    }
-
     public void DisplayFinalCoins(TMP_Text targetText)
     {
         if (targetText != null)
         {
-            targetText.text = $"Coins: {currentCoins}";
+            targetText.text = $"Final Coins: {currentCoins}";
         }
     }
 
-    // --- Coin Spawner Methods (NEWLY ADDED) ---
+    // --- Coin Spawner ---
     IEnumerator SpawnCoinsRoutine()
     {
         while (true)
@@ -179,36 +196,35 @@ public class ScoreSystem : MonoBehaviour
         Vector3 spawnPosition = new Vector3(randomX, randomY, 0f);
 
         GameObject spawnedCoin = Instantiate(coinPrefab, spawnPosition, Quaternion.identity);
-        
+
         CollectableComponent collectable = spawnedCoin.AddComponent<CollectableComponent>();
-        collectable.Initialize(this, coinLifetime); // Pass ScoreSystem instance and lifetime
+        collectable.Initialize(this, coinLifetime);
     }
 }
 
-// Collectable Component (NEWLY ADDED - MUST BE IN THE SAME FILE AS ScoreSystem)
+// --- Collectable Component ---
 public class CollectableComponent : MonoBehaviour
 {
-    private ScoreSystem _scoreSystemInstance; 
+    private ScoreSystem _scoreSystemInstance;
 
     public void Initialize(ScoreSystem manager, float lifetime)
     {
         _scoreSystemInstance = manager;
-        Destroy(gameObject, lifetime); 
+        Destroy(gameObject, lifetime);
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Ball")) 
+        if (other.CompareTag("Ball"))
         {
-            if (_scoreSystemInstance != null) 
+            _scoreSystemInstance?.AddCoin(1);
+
+            if (_scoreSystemInstance != null && _scoreSystemInstance.coinSound != null)
             {
-                _scoreSystemInstance.AddCoin(1); // Call AddCoin on the ScoreSystem instance
+                AudioSource.PlayClipAtPoint(_scoreSystemInstance.coinSound, transform.position);
             }
-            else
-            {
-                Debug.LogWarning("ScoreSystem instance is missing in CollectableComponent!");
-            }
-            Destroy(gameObject); 
+
+            Destroy(gameObject);
         }
     }
 }

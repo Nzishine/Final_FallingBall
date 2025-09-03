@@ -55,7 +55,7 @@ public class LivesSystem : MonoBehaviour
         }
         // Display final coins
         if(finalCoinsText != null && ScoreSystem.Instance != null) 
-        {
+        { 
             ScoreSystem.Instance.DisplayFinalCoins(finalCoinsText); 
         }
 
